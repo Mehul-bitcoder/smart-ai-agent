@@ -1,15 +1,21 @@
 import os
 import pandas as pd
 from glob import glob
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+# from langchain.embeddings import OpenAIEmbeddings
+# from langchain.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.docstore.document import Document
 from dotenv import load_dotenv
+from pydantic import SecretStr
 
 # Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+
+
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 INDEX_DIR = os.path.join(os.path.dirname(__file__), "data_source", "faiss_index")
@@ -32,7 +38,11 @@ def build_faiss_index():
     text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     split_docs = text_splitter.split_documents(all_docs)
     print(f"Split into {len(split_docs)} chunks for embedding.")
-    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+    
+    if OPENAI_API_KEY is None:
+        raise ValueError("Missing OpenAI API Key. Please set OPENAI_API_KEY in your environment.")
+
+    embeddings = OpenAIEmbeddings(api_key=SecretStr(OPENAI_API_KEY))
     vectorstore = FAISS.from_documents(split_docs, embeddings)
     vectorstore.save_local(INDEX_DIR)
     print(f"FAISS index saved to {INDEX_DIR}")

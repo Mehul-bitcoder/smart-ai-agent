@@ -1,5 +1,6 @@
 from langchain.agents import Tool, initialize_agent
 from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 import os
 
 class ReActRAGAgent:
